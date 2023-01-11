@@ -1,13 +1,11 @@
-import React from 'react'
-import Hero from './components/Hero';
+import React from "react";
+import Hero from "./components/Hero";
 
-function App(){ 
-return (
+function App() {
+  return (
     <div className="App">
-     <Hero />
-
+      <Hero />
     </div>
-  
   );
 }
 
