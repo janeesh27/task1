@@ -87,8 +87,7 @@ function Hero() {
           newUsers = [...previousUsers, ...newUsers];
         }
 
-
-   // Save the results to indexedDB
+        // Save the results to indexedDB
         db.transaction("rw", db.users, async () => {
           for (const user of data.results) {
             await db.users.add({
@@ -106,8 +105,19 @@ function Hero() {
 
   return (
     <div style={{ margin: "0", overflowY: "hidden" }} className={classes.root}>
-      <Grid container justifyContent="center" alignItems="center">
-        {loading && <CircularProgress justifyContent="center" />}
+      <Grid container justifyContent="center" alignItems="center" s>
+        {loading && (
+        
+            <CircularProgress
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            />
+           
+        )}
         {!loading && (
           <>
             <Grid container justifyContent="center" alignItems="center">
