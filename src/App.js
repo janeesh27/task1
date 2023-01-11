@@ -3,7 +3,7 @@ import Hero from "./components/Hero";
 
 function App() {
   return (
-    <div className="App">
+    <div style={{backgroundColor:'lightgray'}} className="App">
       <Hero />
     </div>
   );
