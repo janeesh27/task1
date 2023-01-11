@@ -1,11 +1,54 @@
-import React from 'react'
-import { Spinner, Card, Button } from '@material-ui/core';
+import { Card, Button, CircularProgress } from "@material-ui/core";
+import React, { useState, useEffect } from "react";
+import Dexie from "dexie";
+import axios from "axios";
 
-const Hero = () => {
-  return (
-    <div>
+const db = new Dexie("usersDatabase");
+db.version(1).stores({ users: "++id,name,email" });
+
+function Hero() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    async function setUsers() {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          "https://randomuser.me/api/?results=50"
+        );
+        const data = response.data.results;
+        setUsers(data);
+        db.use.bulkAdd(data);
+        setTotal(data.length);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    setUsers();
+  }, []);
+
+  async function handleDelete(id) {
+    await db.use.delete(id);
+    const updatedUsers = users.filter((user) => user.id !== id);
+    setUsers(updatedUsers);
+    setTotal(updatedUsers.length);
+  }
+
+  async function handleRefresh() {
+    setLoading(true);
+    await db.use.clear();
+    setUsers();
+    setLoading(false);
+  }
+
+
+return (
+  <div>
     {loading ? (
-      <Spinner />
+      <CircularProgress />
     ) : (
       <>
         <Button onClick={handleRefresh}>Refresh</Button>
@@ -22,7 +65,6 @@ const Hero = () => {
       </>
     )}
   </div>
-  )
-}
+);}
 
-export default Hero
+export default Hero;
