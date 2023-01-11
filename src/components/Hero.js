@@ -1,7 +1,6 @@
-import { Card, Button, CircularProgress } from "@material-ui/core";
+import { Card, Button, CircularProgress, Grid } from "@material-ui/core";
 import React, { useState, useEffect } from "react";
 import Dexie from "dexie";
-
 
 const db = new Dexie("usersDatabase");
 db.version(1).stores({ users: "++id,name,profile_pic" });
@@ -9,14 +8,15 @@ db.version(1).stores({ users: "++id,name,profile_pic" });
 function Hero() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(50);
 
   // API fuction
+
   useEffect(() => {
     setLoading(true);
-    fetch('https://randomuser.me/api/?results=50')
-      .then(response => response.json())
-      .then(data => {
+    fetch("https://randomuser.me/api/?results=50")
+      .then((response) => response.json())
+      .then((data) => {
         setUsers(data.results);
 
         // Save the results to indexedDB
@@ -32,26 +32,34 @@ function Hero() {
       })
       .finally(() => {
         setLoading(false);
-        setTotal(users.length);
+        setTotal(50);
       });
-  },[]);
+  }, []);
+
   // Function to delete a user from indexedDB and update the UI
+
   const handleDelete = async (id) => {
     await db.users.delete(id);
-    setUsers(users.filter((user) => user.id !== id));
+    const newUsers = await db.users.toArray();
+    
+    setUsers(prevUsers => prevUsers.filter(user => user.login.uuid !== id));
     setTotal(total - 1);
   };
 
   // Refresh button event
   const handleRefresh = async () => {
     setLoading(true);
-    await db.users.clear();
+    const previousUsers = await db.users.toArray();
     fetch("https://randomuser.me/api/?results=50")
       .then((response) => response.json())
-      .then((data) => {
-        setUsers(data.results);
+      .then( async (data) => {
+        let newUsers = data.results;
+        if (previousUsers.length !== 0) {
+          newUsers = [...previousUsers, ...newUsers];
+        }
         // Save the results to indexedDB
         db.transaction("rw", db.users, async () => {
+
           for (const user of data.results) {
             await db.users.add({
               name: `${user.name.first} ${user.name.last}`,
@@ -74,15 +82,19 @@ function Hero() {
         <>
           <Button onClick={handleRefresh}>Refresh</Button>
           <p>Total: {total}</p>
-          <div>
+          <Grid container spacing={3}>
             {users.map((user) => (
-              <Card key={user.id}>
-                <img src={user.picture.large} alt={user.name.first} />
-                <p>{`${user.name.first} ${user.name.last}`}</p>
-                <Button onClick={() => handleDelete(user.id)}>Delete</Button>
-              </Card>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={user.id}>
+                <Card>
+                  <img src={user.picture.large} alt={user.name.first} />
+                  <p>{`${user.name.first} ${user.name.last}`}</p>
+                  <Button onClick={() => handleDelete(user.login.uuid)}>
+                    Delete
+                  </Button>
+                </Card>
+              </Grid>
             ))}
-          </div>
+          </Grid>
         </>
       )}
     </div>
