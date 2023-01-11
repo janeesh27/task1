@@ -86,7 +86,9 @@ function Hero() {
         if (previousUsers.length !== 0) {
           newUsers = [...previousUsers, ...newUsers];
         }
-        // Save the results to indexedDB
+
+
+   // Save the results to indexedDB
         db.transaction("rw", db.users, async () => {
           for (const user of data.results) {
             await db.users.add({
