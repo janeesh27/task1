@@ -35,36 +35,63 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Hero() {
-  const [users, setUsers] = useState([]);
+ // const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(50);
+ // const [total, setTotal] = useState(50);
+
+  const [users, setUsers] = useState(JSON.parse(localStorage.getItem('users')) || []);
+const [total, setTotal] = useState(JSON.parse(localStorage.getItem('total')) || 50);
+
 
   const classes = useStyles();
-  // API fuction
 
   useEffect(() => {
-    setLoading(true);
-    fetch("https://randomuser.me/api/?results=50")
-      .then((response) => response.json())
-      .then((data) => {
-        setUsers(data.results);
+    localStorage.setItem("users", JSON.stringify(users));
+  }, [users]);
 
-        // Save the results to indexedDB
+  
+  // API fuction
 
-        db.transaction("rw", db.users, async () => {
-          for (const user of data.results) {
-            await db.users.add({
-              name: `${user.name.first} ${user.name.last}`,
-              profile_pic: user.picture.large,
+  
+  useEffect(() => {
+    if(users.length === 0) {
+        setLoading(true);
+        fetch("https://randomuser.me/api/?results=50")
+            .then((response) => response.json())
+            .then((data) => {
+                setUsers(data.results);
+                setTotal(data.results.length)
+                localStorage.setItem("users", JSON.stringify(data.results));
+                localStorage.setItem("total", JSON.stringify(data.results.length));
+             
+             
+             
+             
+                // Save the results to indexedDB
+
+                
+                db.transaction("rw", db.users, async () => {
+                    for (const user of data.results) {
+                        await db.users.add({
+                            name: `${user.name.first} ${user.name.last}`,
+                            profile_pic: user.picture.large,
+                        });
+                    }
+                });
+            })
+            .finally(() => {
+                setLoading(false);
             });
-          }
-        });
-      })
-      .finally(() => {
+    }
+    else {
         setLoading(false);
-        setTotal(50);
-      });
-  }, []);
+        setTotal(users.length)
+    }
+}, []);
+
+
+        
+
 
   // Function to delete a user from indexedDB and update the UI
 
@@ -83,10 +110,8 @@ function Hero() {
     fetch("https://randomuser.me/api/?results=50")
       .then((response) => response.json())
       .then(async (data) => {
-        let newUsers = data.results;
-        if (previousUsers.length !== 0) {
-          newUsers = [...previousUsers, ...newUsers];
-        }
+        setUsers(data.results);
+        setTotal(50);
 
         // Save the results to indexedDB
         db.transaction("rw", db.users, async () => {
@@ -100,7 +125,7 @@ function Hero() {
       })
       .finally(() => {
         setLoading(false);
-        setTotal(users.length);
+        setTotal(50);
       });
   };
 
@@ -108,16 +133,14 @@ function Hero() {
     <div style={{ margin: "0", overflowY: "hidden" }} className={classes.root}>
       <Grid container justifyContent="center" alignItems="center" s>
         {loading && (
-        
-            <CircularProgress
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-            />
-           
+          <CircularProgress
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
+          />
         )}
         {!loading && (
           <>
@@ -181,4 +204,4 @@ function Hero() {
 }
 
 export default Hero;
-// final commit 
+// final commit
