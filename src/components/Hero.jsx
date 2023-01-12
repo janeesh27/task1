@@ -6,6 +6,7 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import React, { useState, useEffect } from "react";
+
 import Dexie from "dexie";
 
 const db = new Dexie("usersDatabase");
@@ -180,3 +181,4 @@ function Hero() {
 }
 
 export default Hero;
+// final commit 
